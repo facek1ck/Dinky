@@ -27,10 +27,15 @@ permalink: /configuration/
 | `workspaces` | `5` | Workspaces across all displays, one native Space each. dinky creates and removes Spaces to match. |
 | `default-layout` | `'tiles'` | `'tiles'` (the existing dwindle layout), `'dwindle'`, `'accordion'`, `'fixed'`, or `'scrolling'`. |
 | `default-tiling` | `true` | Set `false` to leave workspaces untiled unless overridden. |
+| `mouse-follows-focus` | `false` | Move the pointer to the focused display’s center if it is on another display. |
 | `follow-app-activation` | `true` | Cmd-Tab and Dock clicks switch Spaces the fast way. Needs the macOS "switch to a Space with open windows" setting off. |
 | `float-windows-without-fullscreen` | `true` | Float windows that can't go full screen, such as Finder's copy progress, About This Mac and Calculator. Terminals and editors that can hide their title bar still tile. A `layout tiling` rule tiles a window anyway. |
 
 </div>
+
+With `mouse-follows-focus = true`, workspace switches, `focus-monitor`, window focus and app activation (including Cmd-Tab) bring the pointer to the focused display. Already-visible and empty workspaces are included. Focus changes within one display leave the pointer untouched. A pointer already on the destination display stays where it is. The destination comes from the focused window, or the display explicitly selected by a command.
+
+Dinky waits for focus and any Space swipe to settle, then moves the pointer once. Moving the mouse during that wait cancels the pending move. The temporary pointer placement used for a Dock swipe is restored before this decision. With focus-follows-mouse also enabled, hover is parked at the new position until the pointer leaves the window there, so the move cannot steal focus. App activation is observed even with `follow-app-activation = false`; that setting only controls following apps to other Spaces.
 
 ## `[workspace.<number>]`
 
@@ -334,6 +339,7 @@ workspaces = 5                  # across all displays, one native Space each
 default-layout = 'tiles'        # tiles (dwindle) | dwindle | accordion | fixed | scrolling
 default-tiling = true           # false leaves workspaces untiled unless overridden
 follow-app-activation = true    # Cmd-Tab and Dock clicks switch Spaces the fast way
+mouse-follows-focus = false     # center the pointer when focus moves to another display
 float-windows-without-fullscreen = true   # progress windows, About, Calculator and the like float
 
 # Example: only tile workspace 2 in a fixed 2x3 template.
