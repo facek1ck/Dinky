@@ -53,6 +53,11 @@
         "then": { "not": { "anyOf": [ { "required": ["columns"] }, { "required": ["rows"] }, { "required": ["expand"] } ] } }
       }
     },
+    "mouse-follows-focus": {
+      "type": "boolean",
+      "default": false,
+      "description": "Center the pointer on the newly focused display only when it is on another display."
+    },
     "follow-app-activation": {
       "type": "boolean",
       "default": true,

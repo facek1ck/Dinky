@@ -51,6 +51,7 @@ struct SchemaTests {
         default-layout = 'accordion'
         default-tiling = true
         follow-app-activation = false
+        mouse-follows-focus = true
         float-windows-without-fullscreen = false
 
         [workspace-to-display]

@@ -11,6 +11,7 @@ struct ConfigTests {
         #expect(config.defaultLayout == .tiles)
         #expect(config.defaultTiling)
         #expect(config.followAppActivation)
+        #expect(!config.mouseFollowsFocus)
         #expect(config.floatWindowsWithoutFullscreen)
         #expect(config.accordion.padding == 30)
         #expect(config.accordion.orientation == .auto)
@@ -45,6 +46,14 @@ struct ConfigTests {
 
     @Test func `Empty config uses defaults`() throws {
         #expect(try Config.parse("") == Config())
+    }
+
+    @Test func `Mouse follows focus is opt in`() throws {
+        #expect(!Config().mouseFollowsFocus)
+        #expect(!Config.default.mouseFollowsFocus)
+        #expect(try Config.parse("mouse-follows-focus = true").mouseFollowsFocus)
+        #expect(try !Config.parse("mouse-follows-focus = false").mouseFollowsFocus)
+        assertError("mouse-follows-focus = 'true'\n", path: "mouse-follows-focus", line: 1, contains: "true or false")
     }
 
     @Test func `Top-level keys`() throws {
