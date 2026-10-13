@@ -294,7 +294,7 @@ static bool cursor_is_on_display(CGDirectDisplayID displayID)
 // The Dock swipes the display under the cursor; nothing in the event or the IOHID payload names a
 // display. So, as mimi, yabai and bobrwm do, warp the cursor to the centre of the target display
 // first. Unlike them we put it back afterwards, which costs two extra delays on a cross-display switch.
-static bool mimi_post_swipes(double sign, int count, CGDirectDisplayID displayID)
+static bool mimi_post_swipes(double sign, int count, CGDirectDisplayID displayID, bool preserveMouseMovement)
 {
     static dispatch_once_t once;
     dispatch_once(&once, ^{
@@ -317,11 +317,27 @@ static bool mimi_post_swipes(double sign, int count, CGDirectDisplayID displayID
 
     if (warp) {
         pump(kMimiStepDelay);  // let the swipes land before the cursor leaves the display
-        CGWarpMouseCursorPosition(restore);
+        // Respect physical movement during the run-loop pump. Mouse-follow-focus makes its own
+        // settled decision in Swift after the flight ends, never during this temporary placement.
+        CGRect bounds = CGDisplayBounds(displayID);
+        CGPoint center = CGPointMake(CGRectGetMidX(bounds), CGRectGetMidY(bounds));
+        CGPoint current = cursor_location();
+        if (!preserveMouseMovement || hypot(current.x - center.x, current.y - center.y) < 2.0) {
+            CGWarpMouseCursorPosition(restore);
+        }
         // A warp holds back real mouse movement for a moment; reattaching the mouse ends that.
         CGAssociateMouseAndMouseCursorPosition(true);
     }
     return posted;
+}
+
+// Shared final pointer move; Swift cannot call the deprecated suppression API directly.
+bool dinky_warp_mouse(CGPoint point)
+{
+    CGSetLocalEventsSuppressionInterval(0.0);
+    CGError result = CGWarpMouseCursorPosition(point);
+    CGAssociateMouseAndMouseCursorPosition(true);
+    return result == kCGErrorSuccess;
 }
 
 #pragma clang diagnostic pop
@@ -334,12 +350,12 @@ static CGDirectDisplayID display_id_for_uuid(CFStringRef displayUUID)
     return kCGNullDirectDisplay;
 }
 
-bool dinky_switch_to_space_index(int fromIndex, int toIndex, CFStringRef displayUUID)
+bool dinky_switch_to_space_index(int fromIndex, int toIndex, CFStringRef displayUUID, bool preserveMouseMovement)
 {
     CGDirectDisplayID displayID = displayUUID ? display_id_for_uuid(displayUUID) : kCGNullDirectDisplay;
     if (displayID == kCGNullDirectDisplay) {
         fprintf(stderr, "switch: no display with UUID %s\n", displayUUID ? [(__bridge NSString *)displayUUID UTF8String] : "(null)");
         return false;
     }
-    return mimi_post_swipes(toIndex > fromIndex ? 1.0 : -1.0, abs(toIndex - fromIndex), displayID);
+    return mimi_post_swipes(toIndex > fromIndex ? 1.0 : -1.0, abs(toIndex - fromIndex), displayID, preserveMouseMovement);
 }

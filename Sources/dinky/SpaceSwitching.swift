@@ -88,7 +88,8 @@ final class SpaceSwitcher {
         flights[uuid] = flight
         noteOwnSwitch(to: flight.target, on: uuid)
         posting = true
-        let ok = dinky_switch_to_space_index(Int32(from + 1), Int32(to + 1), uuid as CFString)
+        let ok = dinky_switch_to_space_index(Int32(from + 1), Int32(to + 1), uuid as CFString,
+                                             AppState.shared.enabled && AppState.shared.config.mouseFollowsFocus)
         posting = false
         if !ok { finish(uuid, "switch: posting the swipe to Space \(to + 1) failed") }
     }

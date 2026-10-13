@@ -69,6 +69,7 @@ func installActivationFollower() {
     }
     center.addObserver(forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main) { note in
         guard let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication else { return }
+        AppState.shared.noteMouseFocusActivation()
         let previous = activePID
         activePID = app.processIdentifier
         activations += 1

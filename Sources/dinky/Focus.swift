@@ -44,12 +44,13 @@ func mainWindowID(of pid: pid_t) -> UInt32 {
     return axElement(app, kAXMainWindowAttribute).map(axWindowID) ?? 0
 }
 
-func frontWindowID() -> UInt32 {
+func frontWindowID(timeout: Float = 0) -> UInt32 {
     guard let app = NSWorkspace.shared.frontmostApplication else { return 0 }
     var value: CFTypeRef?
     let element = AXUIElementCreateApplication(app.processIdentifier)
+    if timeout > 0 { AXUIElementSetMessagingTimeout(element, timeout) }
     guard AXUIElementCopyAttributeValue(element, kAXFocusedWindowAttribute as CFString, &value) == .success,
-          let window = value else { return 0 }
+          let window = value, CFGetTypeID(window) == AXUIElementGetTypeID() else { return 0 }
     return axWindowID(window as! AXUIElement)
 }
 
