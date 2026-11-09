@@ -25,6 +25,9 @@ class UpdateForkTests(unittest.TestCase):
         (self.repo / "shared").write_text("base\n")
         (self.repo / "scripts").mkdir()
         shutil.copy2(SCRIPT, self.repo / "scripts/update-fork.sh")
+        installer = self.repo / "scripts/install-dev.sh"
+        installer.write_text('#!/bin/sh\necho installing > installed\nexit "${INSTALL_TEST_EXIT:-0}"\n')
+        installer.chmod(0o755)
         self.git("add", ".")
         self.git("commit", "-m", "base")
         for remote in ("upstream", "origin"):
@@ -67,7 +70,7 @@ class UpdateForkTests(unittest.TestCase):
         return upstream
 
     def update(self, *args):
-        return self.run_command(["bash", "scripts/update-fork.sh", *args], check=False)
+        return self.run_command(["bash", "scripts/update-fork.sh", "--source-only", *args], check=False)
 
     def backups(self):
         return self.git("for-each-ref", "--format=%(objectname)", "refs/heads/fix/update-backup-*").stdout.split()
@@ -127,6 +130,20 @@ class UpdateForkTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual((self.repo / "collision").read_text(), "local work")
         self.assertEqual(self.git("rev-parse", "HEAD").stdout.strip(), self.before)
+
+    def test_installs_by_default_and_source_only_skips_install(self):
+        result = self.update()
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertFalse((self.repo / "installed").exists())
+        result = self.run_command(["bash", "scripts/update-fork.sh"], check=False)
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertTrue((self.repo / "installed").exists())
+
+    def test_install_failure_stops_push(self):
+        self.env["INSTALL_TEST_EXIT"] = "1"
+        result = self.run_command(["bash", "scripts/update-fork.sh", "--push"], check=False)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertNotIn("refs/heads/feat/personal", self.git("ls-remote", "origin").stdout)
 
 
 if __name__ == "__main__":

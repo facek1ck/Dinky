@@ -5,9 +5,13 @@ test:
     swift test --jobs 4
     python3 -m unittest discover -s scripts/tests -v
 
-# Keep personal commits, merge upstream/main, and test; pass --push to also update your fork.
+# Merge upstream, test, rebuild and relaunch Dinky Dev; --push also updates your fork.
 update *flags:
     scripts/update-fork.sh {{flags}}
+
+# Rebuild and relaunch Dinky Dev without fetching or merging source changes.
+install-dev:
+    scripts/install-dev.sh
 
 bundle *flags:
     scripts/bundle.sh {{flags}}
