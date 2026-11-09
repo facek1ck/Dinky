@@ -52,6 +52,7 @@ struct SchemaTests {
         follow-space-order = true
         default-layout = 'accordion'
         default-tiling = true
+        mouse-follows-focus = true
         float-windows-without-fullscreen = false
         fullscreen-width = 0.8
         lone-window-width = 0.75

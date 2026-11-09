@@ -1,3 +1,4 @@
+import CoreGraphics
 import DinkyConfig
 import Foundation
 
@@ -35,6 +36,7 @@ final class AppState {
     private let hooks = Hooks()
     private let hoverFocus = HoverFocus()
     private let swipeFocus: SwipeFocus
+    private let mouseFocus = MouseFocus()
     private var watcher: ConfigWatcher?
 
     init(swipeFocus: SwipeFocus = SwipeFocus()) {
@@ -72,6 +74,7 @@ final class AppState {
         hooks.start()
         hoverFocus.update(config: config.focusFollowsMouse)
         swipeFocus.update(config: config.swipe)
+        mouseFocus.update(enabled: enabled && config.mouseFollowsFocus)
     }
 
     /// The one enable transition. Off stops tiling and puts every window back where it was before dinky
@@ -100,6 +103,10 @@ final class AppState {
     func quit() {
         setEnabled(false)
     }
+
+    func noteMouseFocusActivation() { mouseFocus.activated() }
+
+    func parkHover(afterWarpTo point: CGPoint) { hoverFocus.park(afterWarpTo: point) }
 
     private func apply(_ result: Result<Config, ConfigError>) {
         switch result {
@@ -132,5 +139,6 @@ final class AppState {
         swipeFocus.setEnabled(enabled)
         hotkeys.enabled = enabled
         coordinator?.enabled = enabled
+        mouseFocus.update(enabled: enabled && config.mouseFollowsFocus)
     }
 }

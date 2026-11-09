@@ -164,6 +164,14 @@ final class HoverFocus {
         park()
     }
 
+    /// Ignore the synthetic move and cancel an outstanding dwell before it can undo keyboard focus.
+    func park(afterWarpTo point: CGPoint) {
+        cancel()
+        parkedAt = point
+        latestPoint = point
+        lastPoint = point
+    }
+
     private func park() {
         cancel()
         parkedAt = CGEvent(source: nil)?.location

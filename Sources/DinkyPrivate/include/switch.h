@@ -6,7 +6,7 @@
 // Swipes from fromIndex to toIndex (1-based) on the display with displayUUID and returns whether
 // posting succeeded. Refuses an unknown display. Does not wait for the switch, but warps the cursor to
 // that display for the swipe when it is elsewhere and waits about 60 ms to put it back.
-bool dinky_switch_to_space_index(int fromIndex, int toIndex, CFStringRef displayUUID);
+bool dinky_switch_to_space_index(int fromIndex, int toIndex, CFStringRef displayUUID, bool preserveMouseMovement);
 
 // Real Dock swipes, for the trackpad swipe tap (Swipe.swift).
 
@@ -29,3 +29,6 @@ bool dinky_is_gesture_event(CGEventRef event);
 bool dinky_can_suppress_dock_swipe(void);
 /// Whether this particular event originated in dinky. Never consumes unrelated physical events.
 bool dinky_is_own_dock_swipe(CGEventRef event);
+
+// Warp in global CG coordinates and immediately resume physical mouse movement.
+bool dinky_warp_mouse(CGPoint point);

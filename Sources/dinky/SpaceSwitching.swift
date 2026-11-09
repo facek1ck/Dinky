@@ -65,7 +65,8 @@ final class SpaceSwitcher {
          },
          swipe: @escaping (Int32, Int32, String) -> Bool = { from, to, uuid in
              noteOwnSwitch()
-             return dinky_switch_to_space_index(from, to, uuid as CFString)
+             return dinky_switch_to_space_index(from, to, uuid as CFString,
+                                                AppState.shared.enabled && AppState.shared.config.mouseFollowsFocus)
          },
          clock: @escaping () -> UInt64 = uptime, pollAutomatically: Bool = true) {
         self.currentSpace = currentSpace

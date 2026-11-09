@@ -47,10 +47,10 @@ func mainWindowID(of pid: pid_t) -> UInt32 {
 
 /// The frontmost app's focused window, 0 if none. Asked on the main thread every half second, so bounded as
 /// `mainWindowID` is: a hung app must not stall the key tap.
-func frontWindowID() -> UInt32 {
+func frontWindowID(timeout: Float = 0.25) -> UInt32 {
     guard let app = NSWorkspace.shared.frontmostApplication else { return 0 }
     let element = AXUIElementCreateApplication(app.processIdentifier)
-    AXUIElementSetMessagingTimeout(element, 0.25)
+    AXUIElementSetMessagingTimeout(element, timeout)
     return axElement(element, kAXFocusedWindowAttribute).map(axWindowID) ?? 0
 }
 

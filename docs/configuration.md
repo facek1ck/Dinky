@@ -31,6 +31,7 @@ file is left alone, with the read error shown in the menu.
 | `default-layout` | `'tiles'` | `'tiles'` (the existing dwindle layout), `'dwindle'`, `'accordion'`, `'fixed'`, `'scrolling'`, or `'master'`. |
 | `default-tiling` | `true` | Set `false` to leave workspaces untiled unless overridden. |
 | `follow-app-activation` | `true` | Cmd-Tab and Dock clicks switch Spaces the fast way. Needs the macOS "switch to a Space with open windows" setting off. Write it as a [`[follow-app-activation]`](#follow-app-activation) table to leave some apps unfollowed. |
+| `mouse-follows-focus` | `false` | Move the pointer to the focused display’s center if it is on another display. |
 | `float-windows-without-fullscreen` | `true` | Float windows that can't go full screen, such as Finder's copy progress, About This Mac and Calculator. Terminals and editors that can hide their title bar still tile. A `layout tiling` rule tiles a window anyway. |
 | `fullscreen-width` | `1.0` | The share of the width, inside the outer gaps, that a `fullscreen` window takes, centred. A window alone on a workspace takes it too unless `lone-window-width` is set. `0.1` to `1`. [`[display.<pattern>]`](#displaypattern) and [`[workspace.<number>]`](#workspacenumber) override it. |
 | `lone-window-width` | resolved `fullscreen-width` | The centred width of a window alone on a workspace, independently of `fullscreen`. `0.1` to `1`. Resolves from the workspace's tables, then the most specific matching display override, then the top level. If unset at every level, uses the resolved `fullscreen-width`. |
@@ -60,6 +61,10 @@ not restore macOS's persistent Space-switching preference; see
 | `exclude-apps` | `[]` | Bundle IDs whose activation is not followed, such as a menu bar app whose popover counts as a window. |
 
 </div>
+
+With `mouse-follows-focus = true`, workspace switches, `focus-monitor`, window focus and app activation (including Cmd-Tab) bring the pointer to the focused display. Already-visible and empty workspaces are included. Focus changes within one display leave the pointer untouched. A pointer already on the destination display stays where it is. The destination comes from the focused window, or the display explicitly selected by a command.
+
+Dinky waits for focus and any Space swipe to settle, then moves the pointer once. Moving the mouse during that wait cancels the pending move. The temporary pointer placement used for a Dock swipe is restored before this decision. With focus-follows-mouse also enabled, hover is parked at the new position until the pointer leaves the window there, so the move cannot steal focus. App activation is observed even with `follow-app-activation = false`; that setting only controls following apps to other Spaces.
 
 ## `[workspace.<number>]`
 
@@ -550,6 +555,7 @@ follow-space-order = false      # true renumbers workspaces when you reorder Spa
 default-layout = 'tiles'        # tiles (dwindle) | dwindle | accordion | fixed | scrolling | master
 default-tiling = true           # false leaves workspaces untiled unless overridden
 follow-app-activation = true    # Cmd-Tab and Dock clicks switch Spaces the fast way
+mouse-follows-focus = false     # center the pointer when focus moves to another display
 float-windows-without-fullscreen = true   # progress windows, About, Calculator and the like float
 fullscreen-width = 1.0          # share of the width a fullscreen window, or a window alone, takes, centred
 # lone-window-width = 0.75      # lone windows only; omitted uses the resolved fullscreen-width

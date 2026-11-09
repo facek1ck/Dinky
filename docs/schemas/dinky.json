@@ -65,6 +65,11 @@
         "then": { "not": { "anyOf": [ { "required": ["columns"] }, { "required": ["rows"] }, { "required": ["expand"] } ] } }
       }
     },
+    "mouse-follows-focus": {
+      "type": "boolean",
+      "default": false,
+      "description": "Center the pointer on the newly focused display only when it is on another display."
+    },
     "follow-app-activation": {
       "default": true,
       "description": "When Cmd-Tab or a Dock click activates an app on another Space, switch there with the fast switch. A table also names apps not to follow.",

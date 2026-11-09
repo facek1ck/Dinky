@@ -22,6 +22,8 @@ public struct Config: Equatable {
     public var workspaceLayouts: [Int: WorkspaceSettings] = [:]
     /// Cmd-Tab and Dock clicks go through the fast switch.
     public var followAppActivation = FollowAppActivation()
+    /// Move the pointer to a newly focused display only when it is elsewhere.
+    public var mouseFollowsFocus = false
     /// Float standard windows whose fullscreen button is missing or disabled, as AeroSpace does.
     public var floatWindowsWithoutFullscreen = true
     /// The share of the width inside the outer gaps a fullscreen window takes, centred.
@@ -125,6 +127,7 @@ public struct Config: Equatable {
             }
         }
         followAppActivation = try FollowAppActivation(t, "follow-app-activation") ?? followAppActivation
+        mouseFollowsFocus = try t.bool("mouse-follows-focus") ?? mouseFollowsFocus
         floatWindowsWithoutFullscreen = try t.bool("float-windows-without-fullscreen") ?? floatWindowsWithoutFullscreen
         fullscreenWidth = try t.windowWidth("fullscreen-width") ?? fullscreenWidth
         loneWindowWidth = try t.windowWidth("lone-window-width")

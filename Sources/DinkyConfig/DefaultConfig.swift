@@ -14,6 +14,7 @@ extension Config {
     default-layout = 'tiles'        # tiles (dwindle) | dwindle | accordion | fixed | scrolling | master
     default-tiling = true           # false leaves workspaces untiled unless overridden
     follow-app-activation = true    # Cmd-Tab and Dock clicks switch Spaces the fast way
+    mouse-follows-focus = false     # center the pointer when focus moves to another display
     float-windows-without-fullscreen = true   # progress windows, About, Calculator and the like float
     fullscreen-width = 1.0          # share of the width a fullscreen window, or a window alone, takes, centred
     # lone-window-width = 0.75      # lone windows only; omitted uses the resolved fullscreen-width
