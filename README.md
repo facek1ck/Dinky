@@ -56,6 +56,9 @@ installs `/Applications/Dinky Dev.app`, and launches it. Compilation and signing
 finish before Dinky quits. The previous installed app is saved under
 `build/dev-app-backups/`; installation or launch failures restore it. The dev app
 keeps `com.brnbw.dinky.dev` and disables upstream auto-updates to preserve your feature.
+It also links `dinky` in `/opt/homebrew/bin` (Apple silicon) or `/usr/local/bin`
+(Intel) to the installed app so SketchyBar and other shell integrations use the
+matching CLI. Existing CLI symlinks are updated; regular files are left alone.
 It uses ad-hoc signing by default, which may require granting Accessibility again;
 set `IDENTITY="Apple Development: Your Name (TEAMID)"` to use a stable certificate.
 No full Xcode install is needed. To rebuild and install without updating source,

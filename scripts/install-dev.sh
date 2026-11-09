@@ -12,6 +12,22 @@ stage=""
 stopped=false
 was_running=false
 installed=false
+cli_changed=false
+previous_cli=""
+if [[ -n "${DINKY_BIN_DIR:-}" ]]; then
+  bin_dir="$DINKY_BIN_DIR"
+elif [[ -d /opt/homebrew/bin ]]; then
+  bin_dir=/opt/homebrew/bin
+else
+  bin_dir=/usr/local/bin
+fi
+cli="$bin_dir/dinky"
+if [[ -L "$cli" ]]; then
+  previous_cli="$(readlink "$cli")"
+elif [[ -e "$cli" ]]; then
+  echo "Refusing to replace a non-symlink CLI: $cli" >&2
+  exit 1
+fi
 
 cleanup() {
   local status=$?
@@ -20,6 +36,11 @@ cleanup() {
     if $installed; then rm -rf "$destination"; fi
     if [[ -n "$stage" && -d "$stage/previous.app" ]]; then
       mv "$stage/previous.app" "$destination"
+    fi
+    if $cli_changed; then
+      if [[ -n "$previous_cli" ]]; then ln -sfn "$previous_cli" "$cli"
+      else rm -f "$cli"
+      fi
     fi
     if $stopped && $was_running; then
       if [[ -d "$destination" ]]; then open "$destination" || true
@@ -31,6 +52,8 @@ cleanup() {
   exit "$status"
 }
 trap cleanup EXIT
+mkdir -p "$bin_dir"
+[[ -w "$bin_dir" ]] || { echo "CLI directory is not writable: $bin_dir" >&2; exit 1; }
 
 # Leave the running app alone until compilation and signing have succeeded.
 echo 'Building Dinky Dev...'
@@ -87,6 +110,9 @@ fi
 if [[ -e "$destination" ]]; then mv "$destination" "$stage/previous.app"; fi
 mv "$app" "$destination"
 installed=true
+# SketchyBar and other shell integrations call dinky through Homebrew's PATH.
+ln -sfn "$destination/Contents/MacOS/dinky" "$cli"
+cli_changed=true
 open "$destination"
 sleep 1
 if ! pgrep -x dinky >/dev/null; then
@@ -100,6 +126,7 @@ if [[ -d "$stage/previous.app" ]]; then
   echo "Previous app: $PWD/$backup/Dinky Dev.app"
 fi
 echo "Started $destination ($version build $build)"
+echo "CLI: $cli -> $destination/Contents/MacOS/dinky"
 if [[ "$identity" == - ]]; then
   echo 'Ad-hoc signed: macOS may require granting Dinky Dev Accessibility again.'
 fi

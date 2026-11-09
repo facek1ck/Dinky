@@ -52,10 +52,14 @@ class InstallDevTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.env = dict(os.environ, INSTALL_TEST_ROOT=str(self.root),
-                        DINKY_APPLICATIONS_DIR=str(self.root / "Applications"), IDENTITY="-")
+                        DINKY_APPLICATIONS_DIR=str(self.root / "Applications"),
+                        DINKY_BIN_DIR=str(self.root / "cli-bin"), IDENTITY="-")
         for key in ("VERSION", "BUILD", "FAIL_BUILD", "FAIL_SIGN", "FAIL_INSTALL", "FAIL_LAUNCH", "REFUSE_QUIT"):
             self.env.pop(key, None)
         (self.root / "Applications").mkdir()
+        self.cli = self.root / "cli-bin/dinky"
+        self.cli.parent.mkdir()
+        self.cli.symlink_to("/Applications/dinky.app/Contents/MacOS/dinky")
         (self.root / "scripts").mkdir()
         shutil.copy2(ROOT / "scripts/install-dev.sh", self.root / "scripts/install-dev.sh")
         (self.root / "Resources").mkdir()
@@ -89,6 +93,7 @@ class InstallDevTests(unittest.TestCase):
     def assert_old_app(self):
         self.assertEqual((self.app / "Contents/MacOS/dinky").read_text(), "old binary")
         self.assertFalse(list((self.root / "Applications").glob(".dinky-dev.*")))
+        self.assertEqual(os.readlink(self.cli), "/Applications/dinky.app/Contents/MacOS/dinky")
 
     def test_build_sign_quit_install_and_launch_with_backup(self):
         result = self.install()
@@ -107,6 +112,7 @@ class InstallDevTests(unittest.TestCase):
         self.assertLess(names.index("pkill"), names.index("open"))
         self.assertEqual(next(c for c in commands if c[0] == "pkill"), ["pkill", "-TERM", "-x", "dinky"])
         self.assertEqual(next(c for c in commands if c[0] == "open")[1], str(self.app))
+        self.assertEqual(os.readlink(self.cli), str(self.app / "Contents/MacOS/dinky"))
 
     def test_build_or_sign_failure_leaves_running_app_untouched(self):
         for key in ("FAIL_BUILD", "FAIL_SIGN"):
@@ -134,6 +140,27 @@ class InstallDevTests(unittest.TestCase):
         self.assertIn("did not quit", result.stdout)
         self.assert_old_app()
         self.assertNotIn("mv", [c[0] for c in self.commands()])
+
+    def test_installs_cli_when_none_exists_and_removes_it_on_launch_failure(self):
+        self.cli.unlink()
+        self.env["FAIL_LAUNCH"] = "1"
+        result = self.install()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertFalse(self.cli.is_symlink())
+        self.assertEqual((self.app / "Contents/MacOS/dinky").read_text(), "old binary")
+        self.env.pop("FAIL_LAUNCH")
+        result = self.install()
+        self.assertEqual(result.returncode, 0, result.stdout)
+        self.assertEqual(os.readlink(self.cli), str(self.app / "Contents/MacOS/dinky"))
+
+    def test_refuses_to_overwrite_a_regular_cli_file(self):
+        self.cli.unlink()
+        self.cli.write_text("another installation")
+        result = self.install()
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("non-symlink CLI", result.stdout)
+        self.assertEqual(self.cli.read_text(), "another installation")
+        self.assertEqual((self.app / "Contents/MacOS/dinky").read_text(), "old binary")
 
 
 if __name__ == "__main__":
