@@ -141,6 +141,7 @@ struct MouseFocusTests {
 struct MouseFocusDestinationTests {
     private func display(_ name: String, _ space: UInt64, x: CGFloat) -> Display {
         Display(uuid: name, id: UInt32(space), frame: CGRect(x: x, y: 0, width: 1000, height: 800),
+                visibleArea: CGRect(x: x, y: 0, width: 1000, height: 800),
                 isMain: space == 1, spaces: [space, space + 10], userSpaces: [space, space + 10], currentSpaceID: space)
     }
 

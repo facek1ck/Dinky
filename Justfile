@@ -5,6 +5,10 @@ test:
     swift test --jobs 4
     python3 -m unittest discover -s scripts/tests -v
 
+# Keep personal commits, merge upstream/main, and test; pass --push to also update your fork.
+update *flags:
+    scripts/update-fork.sh {{flags}}
+
 bundle *flags:
     scripts/bundle.sh {{flags}}
 
